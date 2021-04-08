@@ -47,7 +47,8 @@ def main():
     dataset, n_obj, labels = generate_multiobject_dataset(
         n, img_shape, sprites, labels,
         count_distrib=count_distrib,
-        allow_overlap=allow_overlap)
+        allow_overlap=allow_overlap,
+        place = args.place)
     print("done")
     print("shape:", dataset.shape)
 
@@ -121,16 +122,29 @@ def parse_args():
                         default=True,
                         dest='overlap',
                         help='allow overlap')
+    parser.add_argument('-p',
+                        '--placement',
+                        type=str,
+                        default='random',
+                        dest='place',
+                        help='Chose the placement of the objects. For now : random, center, xalign, yalign')
                         
     args = parser.parse_args()
     #Check if data type is supported
     if args.dataset_type not in supported_sprites:
         raise NotImplementedError(
             "unsupported dataset '{}'".format(args.dataset_type))
+            
     #Create output folder if needed
     folders = os.listdir('generated/')
     if args.folder not in folders:
         os.mkdir('generated/' + args.folder)
+        
+    # Check if placement option is correct
+    supported_place = ['random', 'center', 'xalign', 'yalign']
+    if args.place not in supported_place:
+        raise NotImplementedError(
+            "unsupported placement '{}'".format(args.place))
             
             
     return args

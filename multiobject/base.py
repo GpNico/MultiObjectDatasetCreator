@@ -1,9 +1,10 @@
 import numpy as np
 from tqdm import tqdm
+import multiobject.placement as plc
 
 
 def generate_multiobject_dataset(n, shape, sprites, sprites_attr, count_distrib,
-                                 allow_overlap=False):
+                                 allow_overlap=False, place = 'random'):
     """
     Given a set of sprites, create a dataset with multiple sprites scattered
     on a black background of the specified size. It returns the images, an
@@ -119,12 +120,17 @@ def generate_multiobject_dataset(n, shape, sprites, sprites_attr, count_distrib,
 
             obj_type = random_obj_types[obj_count]
             obj_size = sprites[obj_type].shape
-            r = np.random.randint(x.shape[0] - obj_size[0] + 1)
-            c = np.random.randint(x.shape[1] - obj_size[1] + 1)
             ######################################################################
+            #Placement 
             
-            r = (x.shape[0] - obj_size[0])//2
-            c = (x.shape[1] - obj_size[1])//2
+            if place == 'random':
+                r, c = plc.random_place(x, obj_size)
+            elif place == 'center':
+                r, c = plc.center_place(x, obj_size)
+            elif place == 'xalign':
+                r, c = plc.xalign_place(x, obj_size)
+            elif place == 'yalign':
+                r, c = plc.yalign_place(x, obj_size)
             
             ######################################################################
             

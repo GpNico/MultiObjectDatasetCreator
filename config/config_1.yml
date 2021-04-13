@@ -1,0 +1,31 @@
+name: config_1
+
+relations_2_obj:
+    below:
+        code: 0
+        placement: below
+    top:
+        code: 1
+        placement: top
+    right:
+        code: 2
+        placement: right
+    left:
+        code: 3
+        placement: left
+        
+relations_3_obj:
+    aligned:
+        code: 10
+        placement: aligned
+    
+params:
+    n: 64
+    noise: 0
+    type: dsprites
+    folder: custom
+    file: test_4
+    frame_size: 256
+    patch_size: 64
+    overlap: 1
+      

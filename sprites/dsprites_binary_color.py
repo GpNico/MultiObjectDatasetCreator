@@ -49,5 +49,8 @@ def generate_dsprites(patch_size, num_colors=7, num_angles=40, num_scales=6):
         'color': sprite_colors,
         'scale': sprite_scales,
     }
+    
+    shape_dict = {0: 'square', 1: 'triangle', 2: 'ellipse'}
+    #color_dict = {0: 'white', 1: 'red', 2: 'green', 3: 'blue', 4: 'yellow', 5: 'magenta', 6: 'cyan'}
 
-    return sprite_imgs, attr
+    return sprite_imgs, attr, shape_dict

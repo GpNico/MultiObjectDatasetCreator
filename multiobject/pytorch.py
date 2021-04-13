@@ -13,6 +13,7 @@ class MultiObjectDataLoader(DataLoader):
 
     @staticmethod
     def collate_fn(batch):
+        
 
         # The input is a batch of (image, label_dict)
         _, item_labels = batch[0]
@@ -81,7 +82,11 @@ class MultiObjectDataset(Dataset):
         x = np.transpose(x, [0, 3, 1, 2])  # batch, channels, h, w
 
         # Get labels
-        labels = data['labels'].item()
+        try:
+            labels = data['labels'].item()
+        except:
+            labels = data['labels']
+            print(type(labels))
 
         # Split train and test
         split = int(split * len(x))
@@ -93,7 +98,10 @@ class MultiObjectDataset(Dataset):
         # From numpy/ndarray to torch tensors (labels are lists of tensors as
         # they might have different sizes)
         self.x = torch.from_numpy(x[indices])
-        self.labels = self._labels_to_tensorlist(labels, indices)
+        try:
+            self.labels = self._labels_to_tensorlist(labels, indices)
+        except:
+            self.labels = labels
 
     @staticmethod
     def _labels_to_tensorlist(labels, indices):
@@ -107,7 +115,10 @@ class MultiObjectDataset(Dataset):
 
     def __getitem__(self, index):
         x = self.x[index]
-        labels = {k: self.labels[k][index] for k in self.labels.keys()}
+        try:
+            labels = {k: self.labels[k][index] for k in self.labels.keys()}
+        except:
+            labels = self.labels
         return x, labels
 
     def __len__(self):

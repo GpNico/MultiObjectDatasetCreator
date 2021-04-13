@@ -4,41 +4,79 @@ objects in the picture that are to be called by base.py
 """
 import numpy as np
 
-def random_place(x, obj_size):
-    """
-        Place objects randomly on the image.
-    """
-    r = np.random.randint(x.shape[0] - obj_size[0] + 1)
-    c = np.random.randint(x.shape[1] - obj_size[1] + 1)
+"""
+TWO OBJECTS
+"""
     
-    return r, c
-  
-def center_place(x, obj_size):
-    """
-        Place objects at the center of the image.
-    """
-    r = (x.shape[0] - obj_size[0])//2
-    c = (x.shape[1] - obj_size[1])//2
+def below(r_1, c_1, obj_size_1, obj_size_2, x_shape):
+    r_2 = np.random.randint(low = r_1 + obj_size_1[0], high = x_shape[0] - obj_size_2[0] + 1)
+    c_2 = np.random.randint(x_shape[1] - obj_size_2[1] + 1)
     
-    return r, c
+    return r_2, c_2
     
-def xalign_place(x, obj_size):
-    """
-        Place objects on the line y = 0.
-    """
-    r = (x.shape[0] - obj_size[0])//2
-    c = np.random.randint(x.shape[1] - obj_size[1] + 1)
+def top(r_1, c_1, obj_size_1, obj_size_2, x_shape):
+    r_2 = np.random.randint(r_1 - obj_size_1[0])
+    c_2 = np.random.randint(x_shape[1] - obj_size_2[1] + 1)
     
-    return r, c
+    return r_2, c_2
     
-def yalign_place(x, obj_size):
-    """
-        Place objects on the line y = 0.
-    """
-    r = np.random.randint(x.shape[0] - obj_size[0] + 1)
-    c = (x.shape[1] - obj_size[1])//2
+def right(r_1, c_1, obj_size_1, obj_size_2, x_shape):
+    r_2 = np.random.randint(x_shape[0] - obj_size_2[0] + 1)
+    c_2 = np.random.randint(low = c_1 + obj_size_1[1], high = x_shape[1] - obj_size_2[1] + 1)
     
-    return r, c
+    return r_2, c_2
+    
+def left(r_1, c_1, obj_size_1, obj_size_2, x_shape):
+    r_2 = np.random.randint(x_shape[0] - obj_size_2[0] + 1)
+    c_2 = np.random.randint(c_1 - obj_size_1[1])
+    
+    return r_2, c_2
+    
+    
+
+
+
+
+"""
+THREE OBJECTS
+"""
+
+def aligned(r_1, c_1, obj_size_1, r_2, c_2, obj_size_2, obj_size_3, x_shape):
+    
+    a = (r_1 - r_2)/(c_1 - c_2)
+    b = r_1 - a*c_1
+    
+    c_M, c_m = max(c_1, c_2), min(c_1, c_2)
+    r_M, r_m = max(r_1, r_2), min(r_1, r_2)
+    
+    #c_3 = np.random.randint(low = c_m, high = c_M + 1)
+    c_3 = np.random.randint(x_shape[1] - obj_size_3[1] + 1)
+    
+    r_3_theo = a*c_3 + b
+    
+    thresh = (r_M - r_m)//8
+    
+    r_3 = np.random.randint(low = int(r_3_theo - thresh), high = int(r_3_theo + thresh) + 1)
+    
+    return r_3, c_3
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     

@@ -64,7 +64,7 @@ def generate_multiobject_dataset(n, shape, sprites, sprites_attr, allow_overlap=
             
         if fail_flag:
             fail_count += 1
-            if fail_count >= 2*n:
+            if fail_count >= 10*n:
                 raise Exception("Maximum number of fails reached !")
             continue
 

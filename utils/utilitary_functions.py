@@ -75,10 +75,12 @@ def get_placement_func(config_name = 'config_1.yml'):
     rela_func = {}
     
     for rela in config['relations_2_obj']:
-        rela_func[rela] = import_from_path('multiobject/placement.py' , obj_name = config['relations_2_obj'][rela]['placement'])
+        rela_func[rela] = import_from_path('multiobject/placement.py' , obj_name = str(config['relations_2_obj'][rela]['placement']))
         
     for rela in config['relations_3_obj']:
-        rela_func[rela] = import_from_path('multiobject/placement.py' , obj_name = config['relations_3_obj'][rela]['placement'])
+        rela_func[rela] = [import_from_path('multiobject/placement.py' , obj_name = str(config['relations_3_obj'][rela]['placement1'])),
+                           import_from_path('multiobject/placement.py' , obj_name = str(config['relations_3_obj'][rela]['placement2'])),
+                           bool(int(config['relations_3_obj'][rela]['switch']))]
     
     return rela_func
     
@@ -86,24 +88,38 @@ def readable_labels(labels, rela_code, rela_2, rela_3, shape_dict):
     #relations dict
     rela_dict = {v: k for k, v in rela_code.items()}
     
+    label_dict = {'relation': [], 'text': [], 'brut': []}
+    
     #readble labels
     for k in range(len(labels)):
         label = labels[k]
         rela = rela_dict[label[-1]]
         if rela in rela_2:
-            read_lab = color_name(label[3]) + ' ' + shape_dict[label[2]] + ' ' + rela + ' ' + color_name(label[1]) + ' ' + shape_dict[label[0]]
-            labels[k] = [label, read_lab]
+            read_lab = color_name(label[3]) + ' ' + shape_dict[label[2]] + ' ' + rela + ' \n ' + color_name(label[1]) + ' ' + shape_dict[label[0]]
+            label_dict['relation'].append(label[-1]) 
+            label_dict['text'].append(read_lab)
+            label_dict['brut'].append(label)
         elif rela in rela_3:
             if rela == 'aligned':
                 read_lab = color_name(label[1]) + ' ' + shape_dict[label[0]] + ', '
                 read_lab += color_name(label[3]) + ' ' + shape_dict[label[2]] + ', \n'
                 read_lab += color_name(label[5]) + ' ' + shape_dict[label[4]] + ' ' + rela
                 labels[k] = [label, read_lab]
+            elif rela == 'A_right_B_B_left_C':
+                read_lab = color_name(label[1]) + ' ' + shape_dict[label[0]] + ' right '
+                read_lab += color_name(label[3]) + ' ' + shape_dict[label[2]] + ', \n which is left '
+                read_lab += color_name(label[5]) + ' ' + shape_dict[label[4]]
+                labels[k] = [label, read_lab]
+            elif rela == 'A_right_B_A_top_C':
+                read_lab = color_name(label[1]) + ' ' + shape_dict[label[0]] + ' right '
+                read_lab += color_name(label[3]) + ' ' + shape_dict[label[2]] + ', \n and top '
+                read_lab += color_name(label[5]) + ' ' + shape_dict[label[4]]
+                labels[k] = [label, read_lab]                
             else:
                 read_lab = 'unkown ternary relations'
                 labels[k] = [label, read_lab]
             
-    return labels
+    return label_dict
     
 def get_params(config_name = 'config_1.yml'):
     with open("config/" + config_name) as config_file:

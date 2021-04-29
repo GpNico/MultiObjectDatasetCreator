@@ -13,11 +13,36 @@ relations_2_obj:
     left:
         code: 3
         placement: left
-        
+    contact_right:
+        code: 4
+        placement: cright
+    contact_left:
+        code: 5
+        placement: cleft
+    contact_on:
+        code: 6
+        placement: con
+    right_and_top:
+        code: 7
+        placement: right_and_top
+
+   
 relations_3_obj:
     aligned:
-        code: 10
-        placement: aligned
+        code: 100
+        switch: 0
+        placement1: random
+        placement2: aligned
+    A_right_B_B_left_C:
+        code: 101
+        switch: 1
+        placement1: left
+        placement2: right
+    A_right_B_A_top_C:
+        code: 102
+        switch: 0
+        placement1: left
+        placement2: below
     
 params:
     n: 64
@@ -25,7 +50,7 @@ params:
     type: dsprites
     folder: custom
     file: test_4
-    frame_size: 256
-    patch_size: 64
+    frame_size: 64
+    patch_size: 16
     overlap: 1
       

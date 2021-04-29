@@ -19,8 +19,14 @@ def main():
     frame_size = (args.frame_size, args.frame_size)
     patch_size = args.patch_size
 
-    N_rela = 5
-    count_rela = {'below': 1/N_rela, 'top': 1/N_rela, 'right': 1/N_rela, 'left': 1/N_rela, 'aligned': 1/N_rela}
+    N_rela = 7
+    """
+    count_rela = {'below': 1/N_rela, 'top': 1/N_rela, 'right': 1/N_rela, 'left': 1/N_rela,
+                  'aligned': 1/N_rela, 'A_right_B_B_left_C': 1/N_rela, 'A_right_B_A_top_C': 1/N_rela}
+                  
+    #count_rela = {'contact_right': 1/N_rela, 'contact_left': 1/N_rela, 'contact_on': 1/N_rela, 'right_and_top': 1/N_rela}
+    """
+    count_rela = {'top': 1/3, 'right': 1/3, 'right_and_top': 1/3}
     allow_overlap = args.overlap
     ##########################################
 

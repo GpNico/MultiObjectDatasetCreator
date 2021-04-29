@@ -98,10 +98,16 @@ class MultiObjectDataset(Dataset):
         # From numpy/ndarray to torch tensors (labels are lists of tensors as
         # they might have different sizes)
         self.x = torch.from_numpy(x[indices])
+        
         try:
-            self.labels = self._labels_to_tensorlist(labels, indices)
+            labels.pop('text', None)
+            labels.pop('brut', None)
         except:
-            self.labels = labels
+            print("No text to pop !")
+
+        self.labels = self._labels_to_tensorlist(labels, indices)
+
+
 
     @staticmethod
     def _labels_to_tensorlist(labels, indices):

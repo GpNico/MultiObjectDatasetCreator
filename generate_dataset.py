@@ -56,7 +56,7 @@ def main():
     rela_code = get_rela_code()
     rela_2, rela_3 = get_rela_list()
 
-    labels = readable_labels(labels, rela_code, rela_2, rela_3, shape_dict)
+    #labels = readable_labels(labels, rela_code, rela_2, rela_3, shape_dict)
     
 
     # Save dataset

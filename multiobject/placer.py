@@ -27,7 +27,7 @@ class Placer:
         if relation in self.rela_2_obj:
             placement = self.relations_func[relation]
             x, image_labels, fail_flag = self._place_2_obj(placement, add_noise = self.noise)
-            image_labels[-1] = self.relations_code[relation]
+            image_labels['relation'] = self.relations_code[relation]
         elif relation in self.rela_3_obj:
             placement1, placement2, switch = self.relations_func[relation]
             x, image_labels, fail_flag = self._place_3_obj(placement1, placement2, add_noise = self.noise, switch = switch)
@@ -39,6 +39,8 @@ class Placer:
         self.x = x
               
     def _place_2_obj(self, placement, add_noise = False):
+        
+        im_size_r, im_size_c, _ = self.x.shape
         
         num_obj = 2
         
@@ -107,16 +109,21 @@ class Placer:
         fail_flag = False
         if curr_attempts >= 100:
             fail_flag = True
+        if not(fail_flag):    
+            for k in self.attribute_names:
+                if k == 'coords':
+                    image_labels[k].append([r_1/im_size_r, c_1/im_size_c])
+                    image_labels[k].append([r_2/im_size_r, c_2/im_size_c])
+                elif k == 'relation':
+                    pass
+                else:    
+                    image_labels[k].append(self.sprites_attr[k][obj_type_1])
+                    image_labels[k].append(self.sprites_attr[k][obj_type_2])
             
-        for k in self.attribute_names:
-            image_labels[k].append(self.sprites_attr[k][obj_type_1])
-            image_labels[k].append(self.sprites_attr[k][obj_type_2])
+            if add_noise:
+                self._add_noise(occupied, max_obj = 3)
         
-        if add_noise:
-            self._add_noise(occupied, max_obj = 3)
-        
-        return self.x, [image_labels['shape'][0], image_labels['color'][0],
-                        image_labels['shape'][1], image_labels['color'][1], None], fail_flag
+        return self.x, image_labels, fail_flag
         
     def _place_3_obj(self, placement1, placement2, add_noise = False, switch = False):
         

@@ -16,12 +16,12 @@ def generate_multiobject_dataset(n, shape, sprites, sprites_attr, allow_overlap=
     print("num sprites: {}".format(n_sprites))
 
     # Names of object attributes
-    attribute_names = list(sprites_attr.keys()) #shape, angle, color, scale
+    attribute_names = list(sprites_attr.keys()) + ['coords', 'relation'] #shape, angle, color, scale, coords
 
     # Generated images
     images = []
 
-    labels = []
+    labels = {k: [] for k in attribute_names}
 
     counts_rela = {rela: int(np.ceil(v * n)) for rela, v in count_rela.items()}
     relations = list(counts_rela.keys())
@@ -71,7 +71,8 @@ def generate_multiobject_dataset(n, shape, sprites, sprites_attr, allow_overlap=
         # Append image, number of objects in it, and each object's attributes
         images.append(x.astype('uint8'))
         counts_rela[rela] -= 1
-        labels.append(np.array(image_labels))
+        for k in attribute_names:
+            labels[k].append(np.array(image_labels[k]))
 
         generated_imgs += 1
         progress_bar.update()
@@ -81,6 +82,7 @@ def generate_multiobject_dataset(n, shape, sprites, sprites_attr, allow_overlap=
 
     perm = np.random.permutation(len(images))  # indices
     images = images[perm]
-    labels = [labels[i] for i in perm]
+    for k in attribute_names:
+        labels[k] = [labels[k][i] for i in perm]
 
     return images, labels

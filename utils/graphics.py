@@ -21,6 +21,10 @@ def get_triangle(angle, color, scale, patch_size):
     num_vert = 3
     return get_regular_polygon(angle, num_vert, color, scale, patch_size)
 
+def get_hexagone(angle, color, scale, patch_size):
+    num_vert = 6
+    return get_regular_polygon(angle, num_vert, color, scale, patch_size)
+
 def get_regular_polygon(angle, num_vert, color, scale, patch_size):
 
     # Coordinates of starting vertex
@@ -37,4 +41,4 @@ def get_regular_polygon(angle, num_vert, color, scale, patch_size):
     rr, cc = polygon(coords[:, 0], coords[:, 1], img.shape)
     img[rr, cc, :] = color[None, None, :]
 
-    return img
+    return img, coords

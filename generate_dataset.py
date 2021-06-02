@@ -19,14 +19,14 @@ def main():
     frame_size = (args.frame_size, args.frame_size)
     patch_size = args.patch_size
 
-    N_rela = 7
-    """
-    count_rela = {'below': 1/N_rela, 'top': 1/N_rela, 'right': 1/N_rela, 'left': 1/N_rela,
-                  'aligned': 1/N_rela, 'A_right_B_B_left_C': 1/N_rela, 'A_right_B_A_top_C': 1/N_rela}
+    N_rela = 8
+    
+    #count_rela = {'below': 1/N_rela, 'top': 1/N_rela, 'right': 1/N_rela, 'left': 1/N_rela, 'right_and_top': 1/N_rela}
                   
-    #count_rela = {'contact_right': 1/N_rela, 'contact_left': 1/N_rela, 'contact_on': 1/N_rela, 'right_and_top': 1/N_rela}
-    """
-    count_rela = {'top': 1/3, 'right': 1/3, 'right_and_top': 1/3}
+    count_rela = {'right': 1/N_rela, 'left': 1/N_rela, 'top': 1/N_rela, 'below': 1/N_rela,
+                  'contact_right': 1/N_rela, 'contact_left': 1/N_rela, 'contact_on': 1/N_rela, 'contact_below': 1/N_rela}
+    
+    #count_rela = {'top': 1/3, 'right': 1/3, 'right_and_top': 1/3}
     allow_overlap = args.overlap
     ##########################################
 
@@ -56,8 +56,8 @@ def main():
     rela_code = get_rela_code()
     rela_2, rela_3 = get_rela_list()
 
-    #labels = readable_labels(labels, rela_code, rela_2, rela_3, shape_dict)
-    
+    labels['text'] = readable_labels(labels, rela_code, rela_2, rela_3, shape_dict)
+    print("Labels keys ", labels.keys())
 
     # Save dataset
     print("saving...")

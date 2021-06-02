@@ -13,17 +13,20 @@ relations_2_obj:
     left:
         code: 3
         placement: left
-    contact_right:
+    contact_below:
         code: 4
+        placement: cbelow
+    contact_on:
+        code: 5
+        placement: con
+    contact_right:
+        code: 6
         placement: cright
     contact_left:
-        code: 5
-        placement: cleft
-    contact_on:
-        code: 6
-        placement: con
-    right_and_top:
         code: 7
+        placement: cleft
+    right_and_top:
+        code: 8
         placement: right_and_top
 
    

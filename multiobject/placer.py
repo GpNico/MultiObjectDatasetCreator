@@ -63,17 +63,22 @@ class Placer:
         # FIRST OBJECT 
         #random
         obj_type_1 = random_obj_types[obj_count]
-        obj_size_1 = self.sprites[obj_type_1].shape
+        obj_scale_1 = self.sprites_attr['scale'][obj_type_1]
+        obj_angle_1 = self.sprites_attr['angle'][obj_type_1]
+        vertices1 = self.sprites_attr['vertices'][obj_type_1]
+
+        patch_size_1 = self.sprites[obj_type_1].shape
+        obj_size_1 = [int(patch_size_1[0]*obj_scale_1), int(patch_size_1[1]*obj_scale_1), patch_size_1[2]]
         
-        r_1 = np.random.randint(self.x.shape[0] - obj_size_1[0] + 1)
-        c_1 = np.random.randint(self.x.shape[1] - obj_size_1[1] + 1)
+        r_1 = np.random.randint(self.x.shape[0] - patch_size_1[0] + 1)
+        c_1 = np.random.randint(self.x.shape[1] - patch_size_1[1] + 1)
         
         #place the object
-        occupied[r_1:r_1 + obj_size_1[0], c_1:c_1 + obj_size_1[1]] = 1
+        occupied[r_1:r_1 + patch_size_1[0], c_1:c_1 + patch_size_1[1]] = 1
         
         # Render entity by adding and clipping
         sprite_1 = self.sprites[obj_type_1]
-        self.x[r_1:r_1 + obj_size_1[0], c_1:c_1 + obj_size_1[1]] += sprite_1
+        self.x[r_1:r_1 + patch_size_1[0], c_1:c_1 + patch_size_1[1]] += sprite_1
         self.x = np.clip(self.x, a_min=0, a_max=255)
         
         
@@ -82,24 +87,29 @@ class Placer:
         
         # SECOND OBJECT
         obj_type_2 = random_obj_types[obj_count]
-        obj_size_2 = self.sprites[obj_type_2].shape
+        obj_scale_2 = self.sprites_attr['scale'][obj_type_2]
+        obj_angle_2 = self.sprites_attr['angle'][obj_type_2]
+        vertices2 = self.sprites_attr['vertices'][obj_type_2]
+
+        patch_size_2 = self.sprites[obj_type_2].shape
+        obj_size_2 = [int(patch_size_2[0]*obj_scale_2), int(patch_size_2[1]*obj_scale_2), patch_size_2[2]]
         
         while curr_attempts < 100:
             try:
-                kwargs = {'r_1':r_1, 'c_1':c_1, 'obj_size_1':obj_size_1, 'obj_size_2':obj_size_2,'x_shape':self.x.shape}
+                kwargs = {'r_1':r_1, 'c_1':c_1, 'obj_size_1':obj_size_1, 'obj_size_2':obj_size_2,'x_shape':self.x.shape, 'vertices1': vertices1, 'vertices2': vertices2}
                 r_2, c_2 = placement(**kwargs)
                
                 curr_attempts += 1
-                overlap = np.count_nonzero(occupied[r_2:r_2 + obj_size_2[0], c_2:c_2 + obj_size_2[1]]) > 0
+                overlap = np.count_nonzero(occupied[r_2:r_2 + patch_size_2[0], c_2:c_2 + patch_size_2[1]]) > 0
                 if overlap and not self.allow_overlap:
                     continue
                 else:
                     
-                    occupied[r_2:r_2 + obj_size_2[0], c_2:c_2 + obj_size_2[1]] = 1
+                    occupied[r_2:r_2 + patch_size_2[0], c_2:c_2 + patch_size_2[1]] = 1
 
                     # Render entity by adding and clipping
                     sprite_2 = self.sprites[obj_type_2]
-                    self.x[r_2:r_2 + obj_size_2[0], c_2:c_2 + obj_size_2[1]] += sprite_2
+                    self.x[r_2:r_2 + patch_size_2[0], c_2:c_2 + patch_size_2[1]] += sprite_2
                     self.x = np.clip(self.x, a_min=0, a_max=255)
                     
                     break

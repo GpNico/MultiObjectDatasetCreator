@@ -29,15 +29,21 @@ def generate_dsprites(patch_size, num_colors=7, num_angles=40, num_scales=6):
     sprite_angles = []
     sprite_colors = []
     sprite_scales = []
+    sprite_vertices = []
     for scale in scales:
         for color in colors:
             for angle in angles:
-                img = graphics.get_square(angle, color, scale, patch_size)
+                img, vertices = graphics.get_square(angle, color, scale, patch_size)
                 sprite_imgs.append(img)
-                img = graphics.get_triangle(angle, color, scale, patch_size)
+                sprite_vertices.append(vertices)
+                img, vertices = graphics.get_triangle(angle, color, scale, patch_size)
                 sprite_imgs.append(img)
-                img = graphics.get_ellipse(angle, color, scale, patch_size)
+                sprite_vertices.append(vertices)
+                #img = graphics.get_ellipse(angle, color, scale, patch_size)
+                #sprite_imgs.append(img)
+                img, vertices = graphics.get_hexagone(angle, color, scale, patch_size)
                 sprite_imgs.append(img)
+                sprite_vertices.append(vertices)
                 sprite_shapes.extend([0, 1, 2])
                 sprite_angles.extend([angle]*3)
                 sprite_colors.extend([color]*3)
@@ -48,9 +54,10 @@ def generate_dsprites(patch_size, num_colors=7, num_angles=40, num_scales=6):
         'angle': sprite_angles,
         'color': sprite_colors,
         'scale': sprite_scales,
+        'vertices': sprite_vertices
     }
     
-    shape_dict = {0: 'square', 1: 'triangle', 2: 'ellipse'}
+    shape_dict = {0: 'square', 1: 'triangle', 2: 'hexagone'}
     #color_dict = {0: 'white', 1: 'red', 2: 'green', 3: 'blue', 4: 'yellow', 5: 'magenta', 6: 'cyan'}
 
     return sprite_imgs, attr, shape_dict

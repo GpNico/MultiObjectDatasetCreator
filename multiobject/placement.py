@@ -3,6 +3,7 @@ Store multiple functions that dictate the placements of
 objects in the picture that are to be called by base.py
 """
 import numpy as np
+from utils.utilitary_functions import collide
 
 """
 TWO OBJECTS
@@ -73,25 +74,89 @@ def right_and_top(**kwargs):
 
 def cright(**kwargs):
     r_1, c_1, obj_size_1, obj_size_2, x_shape = kwargs['r_1'], kwargs['c_1'], kwargs['obj_size_1'], kwargs['obj_size_2'], kwargs['x_shape']
+    vertices1, vertices2 = kwargs['vertices1'].copy(), kwargs['vertices2'].copy()
 
     c_2 = c_1 + obj_size_2[1]//2
-    r_2 = np.random.randint(low = r_1 - obj_size_1[0]//2, high = r_1 + obj_size_1[0]//2)
+    r_2 = np.random.randint(low = r_1 - obj_size_1[0]//4, high = r_1 + obj_size_1[0]//4)
+
+    #adjust coordinates
+    vertices1 += np.array([r_1, c_1])
+    vertices2 += np.array([r_2, c_2])
+
+    collide_bool, MPV = collide(vertices2, vertices1)
+
+    if collide_bool:
+        r_2 += MPV[0]
+        c_2 += MPV[1]
+
+        r_2 = int(r_2)
+        c_2 = int(c_2)
 
     return r_2, c_2
     
 def cleft(**kwargs):
     r_1, c_1, obj_size_1, obj_size_2, x_shape = kwargs['r_1'], kwargs['c_1'], kwargs['obj_size_1'], kwargs['obj_size_2'], kwargs['x_shape']
+    vertices1, vertices2 = kwargs['vertices1'].copy(), kwargs['vertices2'].copy()
     
     c_2 = c_1 - obj_size_1[1]//2
-    r_2 = np.random.randint(low = r_1 - obj_size_1[0]//2, high = r_1 + obj_size_1[0]//2)
+    r_2 = np.random.randint(low = r_1 - obj_size_1[0]//4, high = r_1 + obj_size_1[0]//4)
+
+    #adjust coordinates
+    vertices1 += np.array([r_1, c_1])
+    vertices2 += np.array([r_2, c_2])
+
+    collide_bool, MPV = collide(vertices2, vertices1)
+
+    if collide_bool:
+        r_2 += MPV[0]
+        c_2 += MPV[1]
+
+        r_2 = int(r_2)
+        c_2 = int(c_2)
     
     return r_2, c_2
     
 def con(**kwargs):
     r_1, c_1, obj_size_1, obj_size_2, x_shape = kwargs['r_1'], kwargs['c_1'], kwargs['obj_size_1'], kwargs['obj_size_2'], kwargs['x_shape']
+    vertices1, vertices2 = kwargs['vertices1'].copy(), kwargs['vertices2'].copy()
     
     c_2 = c_1
-    r_2 = r_1 - obj_size_1[0]//2
+    r_2 = r_1 - obj_size_1[0]//4
+
+    #adjust coordinates
+    vertices1 += np.array([r_1, c_1])
+    vertices2 += np.array([r_2, c_2])
+
+    collide_bool, MPV = collide(vertices2, vertices1)
+
+    if collide_bool:
+        r_2 += MPV[0]
+        c_2 += MPV[1]
+
+        r_2 = int(r_2)
+        c_2 = int(c_2)
+    
+    return r_2, c_2
+
+def cbelow(**kwargs):
+    r_1, c_1, obj_size_1, obj_size_2, x_shape = kwargs['r_1'], kwargs['c_1'], kwargs['obj_size_1'], kwargs['obj_size_2'], kwargs['x_shape']
+    vertices1, vertices2 = kwargs['vertices1'].copy(), kwargs['vertices2'].copy()
+    
+    c_2 = c_1
+    r_2 = r_1 + obj_size_1[0]//4
+
+    #adjust coordinates
+    vertices1 += np.array([r_1, c_1])
+    vertices2 += np.array([r_2, c_2])
+
+    collide_bool, MPV = collide(vertices2, vertices1)
+
+    if collide_bool:
+        r_2 += MPV[0]
+        c_2 += MPV[1]
+
+        r_2 = int(r_2)
+        c_2 = int(c_2)
     
     return r_2, c_2
     

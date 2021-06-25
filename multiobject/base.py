@@ -47,7 +47,7 @@ def generate_multiobject_dataset(n, shape, sprites, sprites_attr, allow_overlap=
 
     generated_imgs = 0
     fail_count = 0
-    #progress_bar = tqdm(total=n)
+    progress_bar = tqdm()
     while True:
 
         # Reached required number of images
@@ -85,8 +85,8 @@ def generate_multiobject_dataset(n, shape, sprites, sprites_attr, allow_overlap=
             labels[k].append(np.array(image_labels[k]))
 
         generated_imgs += 1
-        #progress_bar.update()
-    #progress_bar.close()
+        progress_bar.update()
+    progress_bar.close()
 
     images = np.stack(images, axis=0)
 

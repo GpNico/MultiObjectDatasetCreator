@@ -94,7 +94,12 @@ def cright(**kwargs):
         r_2 = int(r_2)
         c_2 = int(c_2)
 
-    return r_2, c_2
+    tresh = abs(c_1 - c_2)/2
+    is_still_right = (c_1 < c_2) and ( abs(r_1 - r_2) < tresh)
+    if is_still_right:
+        return r_2, c_2
+    else:
+        raise Exception('Object Not Right !')
     
 def cleft(**kwargs):
     r_1, c_1, obj_size_1, obj_size_2, x_shape = kwargs['r_1'], kwargs['c_1'], kwargs['obj_size_1'], kwargs['obj_size_2'], kwargs['x_shape']
@@ -118,7 +123,12 @@ def cleft(**kwargs):
         r_2 = int(r_2)
         c_2 = int(c_2)
     
-    return r_2, c_2
+    tresh = abs(c_1 - c_2)/2
+    is_still_left = (c_2 < c_1) and ( abs(r_1 - r_2) < tresh)
+    if is_still_left:
+        return r_2, c_2
+    else:
+        raise Exception('Object Not Left !')
     
 def con(**kwargs):
     r_1, c_1, obj_size_1, obj_size_2, x_shape = kwargs['r_1'], kwargs['c_1'], kwargs['obj_size_1'], kwargs['obj_size_2'], kwargs['x_shape']
@@ -142,7 +152,12 @@ def con(**kwargs):
         r_2 = int(r_2)
         c_2 = int(c_2)
     
-    return r_2, c_2
+    tresh = abs(r_1 - r_2)/2
+    is_still_top = (r_1 > r_2) and ( abs(c_1 - c_2) < tresh)
+    if is_still_top:
+        return r_2, c_2
+    else:
+        raise Exception('Object Not top !')
 
 def cbelow(**kwargs):
     r_1, c_1, obj_size_1, obj_size_2, x_shape = kwargs['r_1'], kwargs['c_1'], kwargs['obj_size_1'], kwargs['obj_size_2'], kwargs['x_shape']
@@ -165,8 +180,13 @@ def cbelow(**kwargs):
 
         r_2 = int(r_2)
         c_2 = int(c_2)
-    
-    return r_2, c_2
+
+    tresh = abs(r_1 - r_2)/2
+    is_still_below = (r_2 > r_1) and ( abs(c_1 - c_2) < tresh)
+    if is_still_below:
+        return r_2, c_2
+    else:
+        raise Exception('Object Not Below !')
     
 
 

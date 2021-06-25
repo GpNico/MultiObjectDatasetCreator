@@ -23,9 +23,10 @@ def main():
     
 
                   
-    count_rela = {'right': N_rela//4, 'left': N_rela//4, 'top': N_rela//4, 'below': N_rela//4,
-                  'contact_right': N_rela, 'contact_left': N_rela, 'contact_on': N_rela, 'contact_below': N_rela}
+    #count_rela = {'right': 0*N_rela//4, 'left': 0*N_rela//4, 'top': 0*N_rela//4, 'below': 0*N_rela//4,
+     #             'contact_right': N_rela, 'contact_left': N_rela, 'contact_on': N_rela, 'contact_below': N_rela}
     
+    count_rela = {'right': N_rela, 'left': N_rela, 'contact_on': N_rela, 'contact_below': N_rela}
 
     allow_overlap = args.overlap
     ##########################################
@@ -37,6 +38,9 @@ def main():
         sprites, labels, shape_dict = generate_dsprites(patch_size)
     elif args.dataset_type == 'binary_mnist':
         sprites, labels = generate_binary_mnist(patch_size)
+    elif args.dataset_type == 'clevr':
+        print('You have chosen clevr congrats !!')
+        os.system('blender --background --python render_images.py -- --num_images 10')
     else:
         raise NotImplementedError
 

@@ -4,7 +4,7 @@ from importlib import import_module
 import argparse
 import os
 
-supported_sprites = ['dsprites', 'binary_mnist']
+supported_sprites = ['dsprites', 'binary_mnist', 'clevr']
 
 def color_name(arr):
     assert arr.shape[0] == 3, "Color array must be of shapr 3"
@@ -136,12 +136,13 @@ def parse_args():
         
     config = get_params()
     
-    parser.add_argument('--type',
+    parser.add_argument('-t',
+                        '--type',
                         type=str,
                         default=config['type'],
                         metavar='NAME',
                         dest='dataset_type',
-                        help="dataset type")
+                        help="dataset type : dsprites, clevr, binary_mnist")
     parser.add_argument('--folder',
                         type=str,
                         default=config['folder'],

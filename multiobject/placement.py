@@ -86,8 +86,10 @@ def cright(**kwargs):
     collide_bool, MPV = collide(vertices2, vertices1)
 
     if collide_bool:
-        r_2 += MPV[0]
-        c_2 += MPV[1]
+        MPV_unit = MPV/np.linalg.norm(MPV)
+
+        r_2 += MPV[0] - 2*MPV_unit[0]
+        c_2 += MPV[1] - 2*MPV_unit[1]
 
         r_2 = int(r_2)
         c_2 = int(c_2)
@@ -108,8 +110,10 @@ def cleft(**kwargs):
     collide_bool, MPV = collide(vertices2, vertices1)
 
     if collide_bool:
-        r_2 += MPV[0]
-        c_2 += MPV[1]
+        MPV_unit = MPV/np.linalg.norm(MPV)
+
+        r_2 += MPV[0] - 2*MPV_unit[0]
+        c_2 += MPV[1] - 2*MPV_unit[1]
 
         r_2 = int(r_2)
         c_2 = int(c_2)
@@ -130,8 +134,10 @@ def con(**kwargs):
     collide_bool, MPV = collide(vertices2, vertices1)
 
     if collide_bool:
-        r_2 += MPV[0]
-        c_2 += MPV[1]
+        MPV_unit = MPV/np.linalg.norm(MPV)
+
+        r_2 += MPV[0] - 2*MPV_unit[0]
+        c_2 += MPV[1] - 2*MPV_unit[1]
 
         r_2 = int(r_2)
         c_2 = int(c_2)
@@ -152,8 +158,10 @@ def cbelow(**kwargs):
     collide_bool, MPV = collide(vertices2, vertices1)
 
     if collide_bool:
-        r_2 += MPV[0]
-        c_2 += MPV[1]
+        MPV_unit = MPV/np.linalg.norm(MPV)
+
+        r_2 += MPV[0] - 2*MPV_unit[0]
+        c_2 += MPV[1] - 2*MPV_unit[1]
 
         r_2 = int(r_2)
         c_2 = int(c_2)

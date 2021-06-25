@@ -131,137 +131,15 @@ class Placer:
                     image_labels[k].append(self.sprites_attr[k][obj_type_2])
             
             if add_noise:
-                self._add_noise(occupied, max_obj = 3)
-        
+                image_labels = self._add_noise(occupied, image_labels, max_obj = 2)
+
         return self.x, image_labels, fail_flag
         
-    def _place_3_obj(self, placement1, placement2, add_noise = False, switch = False):
-        
-        num_obj = 3
-        
-        image_labels = {k: [] for k in self.attribute_names}
-        
-        # Pick the sprite type for each objects in this image
-        random_obj_types = np.random.choice(range(self.n_sprites), size=num_obj, replace=True)
-        
-        # Locations containing rendered sprites
-        occupied = np.zeros_like(self.x, dtype='uint8')
-        
-        # Dictionary with (key=attribute name, value=list of attribute values
-        # for each object in this image)
-        image_labels = {k: [] for k in self.attribute_names}
-        
-        obj_count = 0
-        
-        # FIRST OBJECT 
-        #random
-        obj_type_1 = random_obj_types[obj_count]
-        obj_size_1 = self.sprites[obj_type_1].shape
-        
-        r_1 = np.random.randint(self.x.shape[0] - obj_size_1[0] + 1)
-        c_1 = np.random.randint(self.x.shape[1] - obj_size_1[1] + 1)
-        
-        #place the object
-        occupied[r_1:r_1 + obj_size_1[0], c_1:c_1 + obj_size_1[1]] = 1
-        
-        # Render entity by adding and clipping
-        sprite_1 = self.sprites[obj_type_1]
-        self.x[r_1:r_1 + obj_size_1[0], c_1:c_1 + obj_size_1[1]] += sprite_1
-        self.x = np.clip(self.x, a_min=0, a_max=255)
+    
         
         
-        # Increment object counter
-        obj_count += 1
-        
-        # SECOND OBJECT 
-        #random
-        obj_type_2 = random_obj_types[obj_count]
-        obj_size_2 = self.sprites[obj_type_2].shape
-        
-        curr_attempts = 0
-        
-        while curr_attempts < 100:
-            try:
-                kwargs = {'r_1':r_1, 'c_1':c_1, 'obj_size_1':obj_size_1, 'obj_size_2':obj_size_2,'x_shape':self.x.shape}
-                r_2, c_2 = placement1(**kwargs)
-                
-                #place the object
-                occupied[r_2:r_2 + obj_size_2[0], c_2:c_2 + obj_size_2[1]] = 1
-                
-                curr_attempts += 1
-                overlap = np.count_nonzero(occupied[r_2:r_2 + obj_size_2[0], c_2:c_2 + obj_size_2[1]]) > 0
-                if overlap and not self.allow_overlap:
-                    continue
-                else:
-                    # Render entity by adding and clipping
-                    sprite_2 = self.sprites[obj_type_2]
-                    self.x[r_2:r_2 + obj_size_2[0], c_2:c_2 + obj_size_2[1]] += sprite_2
-                    self.x = np.clip(self.x, a_min=0, a_max=255)
-                    break
-            except:
-                curr_attempts += 1
-                
-        fail_flag = False
-        if curr_attempts >= 100:
-            fail_flag = True
-        
-
-        
-        
-        # Increment object counter
-        obj_count += 1
-        
-        # THIRD OBJECT
-        obj_type_3 = random_obj_types[obj_count]
-        obj_size_3 = self.sprites[obj_type_3].shape
-        
-        curr_attempts = 0
-        
-        while curr_attempts < 100:
-            try:
-                if switch:
-                    kwargs = {'r_1':r_2, 'c_1':c_2, 'obj_size_1':obj_size_2, 'r_2':r_1, 'c_2':c_1, 'obj_size_2':obj_size_3,
-                              'obj_size_3': obj_size_2, 'x_shape':self.x.shape}
-                else:
-                    kwargs = {'r_1':r_1, 'c_1':c_1, 'obj_size_1':obj_size_1, 'r_2':r_2, 'c_2':c_2, 'obj_size_2':obj_size_2,
-                              'obj_size_3': obj_size_3, 'x_shape':self.x.shape}
-                r_3, c_3 = placement2(**kwargs)
-               
-                curr_attempts += 1
-                overlap = np.count_nonzero(occupied[r_3:r_3 + obj_size_3[0], c_3:c_3 + obj_size_3[1]]) > 0
-                if overlap and not self.allow_overlap:
-                    continue
-                else:
-                    
-                    occupied[r_3:r_3 + obj_size_3[0], c_3:c_3 + obj_size_3[1]] = 1
-
-                    # Render entity by adding and clipping
-                    sprite_3 = self.sprites[obj_type_3]
-                    self.x[r_3:r_3 + obj_size_3[0], c_3:c_3 + obj_size_3[1]] += sprite_3
-                    self.x = np.clip(self.x, a_min=0, a_max=255)
-                    
-                    break
-            except:
-                curr_attempts += 1
-        
-        if curr_attempts >= 100:
-            fail_flag = True
-            
-        for k in self.attribute_names:
-            image_labels[k].append(self.sprites_attr[k][obj_type_1])
-            image_labels[k].append(self.sprites_attr[k][obj_type_2])
-            image_labels[k].append(self.sprites_attr[k][obj_type_3])
-            
-        
-        if add_noise:
-            self._add_noise(occupied, max_obj = 3)
-        
-        return self.x, [image_labels['shape'][0], image_labels['color'][0],
-                        image_labels['shape'][1], image_labels['color'][1],
-                        image_labels['shape'][2], image_labels['color'][2], None], fail_flag
-        
-        
-    def _add_noise(self, occupied, max_obj = 3):
+    def _add_noise(self, occupied, image_labels, max_obj = 2):
+        im_size_r, im_size_c, _ = self.x.shape
         
         req_n_obj = np.random.randint(max_obj + 1)
         
@@ -285,7 +163,7 @@ class Placer:
             curr_attempts += 1
             overlap = np.count_nonzero(
                 occupied[r:r + obj_size[0], c:c + obj_size[1]]) > 0
-            if overlap and not self.allow_overlap:
+            if overlap: #and not self.allow_overlap:
                 continue
             occupied[r:r + obj_size[0], c:c + obj_size[1]] = 1
 
@@ -296,6 +174,16 @@ class Placer:
 
             # Increment object counter
             obj_count += 1
+
+            for k in self.attribute_names:
+                if k == 'coords':
+                    image_labels[k].append([r/im_size_r, c/im_size_c])
+                elif k == 'relation':
+                    pass
+                else:    
+                    image_labels[k].append(self.sprites_attr[k][obj_type])
+
+        return image_labels
         
         
         

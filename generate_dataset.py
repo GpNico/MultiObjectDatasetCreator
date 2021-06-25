@@ -19,6 +19,8 @@ def main():
     frame_size = (args.frame_size, args.frame_size)
     patch_size = args.patch_size
 
+    gpu_acceleration = False
+
     N_rela = n
     
 
@@ -30,7 +32,7 @@ def main():
 
     allow_overlap = args.overlap
     ##########################################
-
+    
 
     # Generate sprites and labels
     print("generating sprites...")
@@ -40,7 +42,13 @@ def main():
         sprites, labels = generate_binary_mnist(patch_size)
     elif args.dataset_type == 'clevr':
         print('You have chosen clevr congrats !!')
-        os.system('blender --background --python render_images.py -- --num_images 10')
+        if gpu_acceleration:
+            print("GPU Accelerated !")
+            os.system('blender --background --python image_generation/render_images.py -- --num_images 10 --use_gpu 1')
+        else:
+            print("No GPU available or CUDA 10.x installed !")
+            os.system('blender --background --python image_generation/render_images.py -- --num_images 2')
+        exit()
     else:
         raise NotImplementedError
 

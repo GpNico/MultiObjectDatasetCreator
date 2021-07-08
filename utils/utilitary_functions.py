@@ -178,7 +178,12 @@ def parse_args():
                         default=config['noise'],
                         dest='noise',
                         help='allow noise : 0 = False, 1 = True')
-                        
+    parser.add_argument('--gpu',
+                        type=int,
+                        default=0,
+                        dest='gpu',
+                        help='gpu acceleration : 0 = False, 1 = True')
+
     args = parser.parse_args()
     #Check if data type is supported
     if args.dataset_type not in supported_sprites:
@@ -199,6 +204,11 @@ def parse_args():
         args.noise = False
     else:
         args.noise = True
+
+    if args.gpu == 0:
+        args.gpu = False
+    else:
+        args.gpu = True
             
             
     return args

@@ -7,8 +7,14 @@
 
 from __future__ import print_function
 import math, sys, random, argparse, json, os, tempfile
+
+import numpy as np
+
 from datetime import datetime as dt
 from collections import Counter
+
+import exhaustivator
+import placement
 
 """
 Renders random scenes using Blender, each with with a random number of objects;
@@ -25,7 +31,7 @@ blender --background --python render_images.py -- [arguments to this script]
 INSIDE_BLENDER = True
 try:
   import bpy, bpy_extras
-  from mathutils import Vector
+  from mathutils import Vector, Quaternion
 except ImportError as e:
   INSIDE_BLENDER = False
 if INSIDE_BLENDER:
@@ -170,7 +176,40 @@ def main(args):
     os.makedirs(args.output_blend_dir)
   
   all_scene_paths = []
-  for i in range(args.num_images):
+
+  ########################################################################
+
+  N_rela = args.num_images
+  #count_rela = {'contact_right': N_rela, 'contact_left': N_rela}
+  count_rela = {'right': 0*N_rela, 'left': 0*N_rela, 'front': 0*N_rela, 'behind': 0*N_rela, 'contact_on': N_rela, 'contact_below': N_rela, 'contact_right': N_rela, 'contact_left': N_rela}
+  
+  Exhaustivator = exhaustivator.Exhaustivator(count_rela)
+
+  relations = list(count_rela.keys())
+  rela_idx_to_construct = [i for i in range(len(relations))]
+
+  ########################################################################
+  i = 0
+  while True:
+
+    if (np.array(list(count_rela.values()))<=0).all():
+        break
+    if i >= len(count_rela)*N_rela:
+        break
+
+    num_rela_to_add = random.randint(1,3)
+    #num_rela_to_add = 1
+    rela_list = []
+    for kk in range(num_rela_to_add):
+        relations_idx = np.random.choice(rela_idx_to_construct)
+        rela = relations[relations_idx]
+
+        rela_list.append(rela)
+
+    if count_rela[rela] <= 0:
+        rela_idx_to_construct.remove(relations_idx)
+        continue
+
     img_path = img_template % (i + args.start_idx)
     scene_path = scene_template % (i + args.start_idx)
     all_scene_paths.append(scene_path)
@@ -178,14 +217,18 @@ def main(args):
     if args.save_blendfiles == 1:
       blend_path = blend_template % (i + args.start_idx)
     num_objects = random.randint(args.min_objects, args.max_objects)
-    render_scene(args,
+    count_rela = render_scene(args,
       num_objects=num_objects,
       output_index=(i + args.start_idx),
       output_split=args.split,
       output_image=img_path,
       output_scene=scene_path,
       output_blendfile=blend_path,
+      Exhaustivator = Exhaustivator,
+      count_rela = count_rela,
+      rela_list = rela_list
     )
+    i += 1
 
   # After rendering all images, combine the JSON files for each scene into a
   # single JSON file.
@@ -205,6 +248,11 @@ def main(args):
   with open(args.output_scene_file, 'w') as f:
     json.dump(output, f)
 
+  print("Count of relations created : ", Exhaustivator.rela_count)
+  print("Number of images created : ", i)
+
+
+
 
 
 def render_scene(args,
@@ -214,6 +262,9 @@ def render_scene(args,
     output_image='render.png',
     output_scene='render_json',
     output_blendfile=None,
+    Exhaustivator=None,
+    count_rela=None,
+    rela_list = None
   ):
 
   # Load the main blendfile
@@ -306,12 +357,34 @@ def render_scene(args,
     for i in range(3):
       bpy.data.objects['Lamp_Fill'].location[i] += rand(args.fill_light_jitter)
 
-  # Now make some random objects
-  objects, blender_objects = add_random_objects(scene_struct, num_objects, args, camera)
+  # Now make some random objects ## objects = list(dict)
+  #objects, blender_objects = add_random_objects(scene_struct, num_objects, args, camera)
+
+  ############################################################################
+
+  placement_func = {'right':placement.right, 
+                    'left': placement.left,
+                    'front': placement.front,
+                    'behind': placement.behind,
+                    'contact_on': placement.con,
+                    'contact_below': placement.con,
+                    'contact_right': placement.cright,
+                    'contact_left': placement.cleft}
+
+  ############################################################################
+
+  objects, blender_objects = add_rela(scene_struct, rela_list, args, camera, placement_func)
 
   # Render the scene and dump the scene data structure
   scene_struct['objects'] = objects
-  scene_struct['relationships'] = compute_all_relationships(scene_struct)
+
+
+  coords = [objects[k]['3d_coords'] for k in range(len(objects))]
+  scales = [objects[k]['scale'] for k in range(len(objects))]
+  
+  Y, count_rela = Exhaustivator.exhaustivate(coords, scales, count_rela, camera)  
+
+  scene_struct['relationships'] = Y.tolist()
   while True:
     try:
       bpy.ops.render.render(write_still=True)
@@ -324,6 +397,332 @@ def render_scene(args,
 
   if output_blendfile is not None:
     bpy.ops.wm.save_as_mainfile(filepath=output_blendfile)
+
+  return count_rela
+
+def get_vertices_coords(obj):
+
+    N_vertices = len(blender_vertices)
+    list_of_vertices = []
+    for k in range(N_vertices):
+        vector = len(obj.matrix_world * obj.data.vertices[k].co)
+        list_of_vertices.append(vertices)
+
+    return list_of_vertices
+
+def add_rela(scene_struct, rela_list, args, camera, placement_func):
+  # Load the property file
+  with open(args.properties_json, 'r') as f:
+    properties = json.load(f)
+    color_name_to_rgba = {}
+    for name, rgb in properties['colors'].items():
+      rgba = [float(c) / 255.0 for c in rgb] + [1.0]
+      color_name_to_rgba[name] = rgba
+    material_mapping = [(v, k) for k, v in properties['materials'].items()]
+    object_mapping = [(v, k) for k, v in properties['shapes'].items()]
+    size_mapping = list(properties['sizes'].items())
+
+  shape_color_combos = None
+  if args.shape_color_combos_json is not None:
+    with open(args.shape_color_combos_json, 'r') as f:
+      shape_color_combos = list(json.load(f).items())
+
+  positions = []
+  objects = []
+  blender_objects = []
+  
+  num_rela = len(rela_list)
+
+  for i in range(num_rela):
+      rela = rela_list[i]
+
+      ####################################################################################
+      #OBJECT 1
+
+      # Choose a random size
+      size_name_1, r_1 = random.choice(size_mapping)
+
+      # Try to place the object, ensuring that we don't intersect any existing
+      # objects and that we are more than the desired margin away from all existing
+      # objects along all cardinal directions.
+      num_tries = 0
+      while True:
+        # If we try and fail to place an object too many times, then delete all
+        # the objects in the scene and start over.
+        num_tries += 1
+        if num_tries > args.max_retries:
+          for obj in blender_objects:
+            utils.delete_object(obj)
+          return add_rela(scene_struct, rela_list, args, camera, placement)
+        x_1 = random.uniform(-3, 3)
+        y_1 = random.uniform(-3, 3)
+        z_1 = r_1
+        #x_1, y_1 = 0, 0 
+   
+        dists_good = True
+        margins_good = True
+   
+        if dists_good and margins_good:
+          break
+
+
+      # Choose random color and shape
+      if shape_color_combos is None:
+        obj_name_1, obj_name_out_1 = random.choice(object_mapping)
+        color_name_1, rgba_1 = random.choice(list(color_name_to_rgba.items()))
+      else:
+        obj_name_out_1, color_choices_1 = random.choice(shape_color_combos)
+        color_name_1 = random.choice(color_choices_1)
+        obj_name_1 = [k for k, v in object_mapping if v == obj_name_out_1][0]
+        rgba_1 = color_name_to_rgba[color_name_1]
+
+      # For cube, adjust the size a bit
+      if obj_name_1 == 'Cube':
+        r_1 /= math.sqrt(2)
+        z_1 /= math.sqrt(2)
+
+      # Choose random orientation for the object.
+      theta_1 = 360.0 * random.random()
+
+      # Actually add the object to the scene
+      utils.add_object(args.shape_dir, obj_name_1, r_1, (x_1, y_1, z_1), theta=theta_1)
+      obj_1 = bpy.context.object
+      blender_objects.append(obj_1)
+      #positions.append((x_1, y_1, z_1))
+
+      # Attach a random material
+      mat_name_1, mat_name_out_1 = random.choice(material_mapping)
+      utils.add_material(mat_name_1, Color=rgba_1)
+
+      # Record data about the object in the scene data structure
+      pixel_coords_1 = utils.get_camera_coords(camera, obj_1.location)
+      objects.append({
+        'shape': obj_name_out_1,
+        'size': size_name_1,
+        'material': mat_name_out_1,
+        '3d_coords': tuple(obj_1.location),
+        'rotation': theta_1,
+        'pixel_coords': pixel_coords_1,
+        'color': color_name_1,
+        'scale': r_1
+      })
+
+      ####################################################################################
+      #OBJECT 2
+
+      # Choose a random size
+      size_name_2, r_2 = random.choice(size_mapping)
+
+      # Choose random color and shape
+      if shape_color_combos is None:
+        obj_name_2, obj_name_out_2 = random.choice(object_mapping)
+        color_name_2, rgba_2 = random.choice(list(color_name_to_rgba.items()))
+      else:
+        obj_name_out_2, color_choices_2 = random.choice(shape_color_combos)
+        color_name_2 = random.choice(color_choices_2)
+        obj_name_2 = [k for k, v in object_mapping if v == obj_name_out_2][0]
+        rgba_2 = color_name_to_rgba[color_name_2]
+
+      # For cube, adjust the size a bit
+      if obj_name_2 == 'Cube':
+        r_2 /= math.sqrt(2)
+
+      # Try to place the object, ensuring that we don't intersect any existing
+      # objects and that we are more than the desired margin away from all existing
+      # objects along all cardinal directions.
+      num_tries = 0
+      while True:
+        # If we try and fail to place an object too many times, then delete all
+        # the objects in the scene and start over.
+        num_tries += 1
+        if num_tries > args.max_retries:
+          for obj in blender_objects:
+            utils.delete_object(obj)
+          return add_rela(scene_struct, rela_list, args, camera, placement_func)
+
+        kwargs = {'x_1':x_1, 'y_1':y_1, 'r_1':r_1, 'r_2': r_2, 'camera': camera}
+        x_2, y_2, z_2 = placement_func[rela](**kwargs)
+    
+    
+        dists_good = True
+        margins_good = True
+
+        for (xx, yy, rr) in positions:
+          dx, dy = x_1 - xx, y_1 - yy
+          dist = math.sqrt(dx * dx + dy * dy)
+          if dist - r_1 - rr < args.min_dist:
+            dists_good = False
+            break
+          for direction_name in ['left', 'right', 'front', 'behind']:
+            direction_vec = scene_struct['directions'][direction_name]
+            assert direction_vec[2] == 0
+            margin = dx * direction_vec[0] + dy * direction_vec[1]
+            if 0 < margin < args.margin:
+              print(margin, args.margin, direction_name)
+              print('BROKEN MARGIN!')
+              margins_good = False
+              break
+          if not margins_good:
+            break
+
+        for (xx, yy, rr) in positions:
+          dx, dy = x_2 - xx, y_2 - yy
+          dist = math.sqrt(dx * dx + dy * dy)
+          if dist - r_2 - rr < args.min_dist:
+            dists_good = False
+            break
+          for direction_name in ['left', 'right', 'front', 'behind']:
+            direction_vec = scene_struct['directions'][direction_name]
+            assert direction_vec[2] == 0
+            margin = dx * direction_vec[0] + dy * direction_vec[1]
+            if 0 < margin < args.margin:
+              print(margin, args.margin, direction_name)
+              print('BROKEN MARGIN!')
+              margins_good = False
+              break
+          if not margins_good:
+            break
+        
+        if dists_good and margins_good:
+          break
+
+
+
+
+      # Choose random orientation for the object.
+      #theta_2 = 360.0 * random.random()
+      theta_2 = theta_1
+
+      # Actually add the object to the scene
+      utils.add_object(args.shape_dir, obj_name_2, r_2, (x_2, y_2, z_2), theta=theta_2)
+      obj_2 = bpy.context.object
+      blender_objects.append(obj_2)
+
+      positions.append((x_1, y_1, z_1))
+      positions.append((x_2, y_2, z_2))
+
+      # Attach a random material
+      mat_name_2, mat_name_out_2 = random.choice(material_mapping)
+      utils.add_material(mat_name_2, Color=rgba_2)
+
+      # Record data about the object in the scene data structure
+      pixel_coords_2 = utils.get_camera_coords(camera, obj_2.location)
+      objects.append({
+        'shape': obj_name_out_2,
+        'size': size_name_2,
+        'material': mat_name_out_2,
+        '3d_coords': tuple(obj_2.location),
+        'rotation': theta_2,
+        'pixel_coords': pixel_coords_2,
+        'color': color_name_2,
+        'scale': r_2
+      })
+
+
+  ##############################################################################
+  #ADD RANDOM OBJECTS
+
+  num_objects = random.randint(0,3)
+  #num_objects = 0
+
+  for i in range(num_objects):
+    # Choose a random size
+    size_name, r = random.choice(size_mapping)
+
+    # Try to place the object, ensuring that we don't intersect any existing
+    # objects and that we are more than the desired margin away from all existing
+    # objects along all cardinal directions.
+    num_tries = 0
+    while True:
+      # If we try and fail to place an object too many times, then delete all
+      # the objects in the scene and start over.
+      num_tries += 1
+      if num_tries > args.max_retries:
+        for obj in blender_objects:
+          utils.delete_object(obj)
+        return add_rela(scene_struct, rela_list, args, camera, placement_func)
+      x = random.uniform(-3, 3)
+      y = random.uniform(-3, 3)
+      # Check to make sure the new object is further than min_dist from all
+      # other objects, and further than margin along the four cardinal directions
+      dists_good = True
+      margins_good = True
+
+      for (xx, yy, rr) in positions:
+        dx, dy = x - xx, y - yy
+        dist = math.sqrt(dx * dx + dy * dy)
+        if dist - r - rr < args.min_dist:
+          dists_good = False
+          break
+        for direction_name in ['left', 'right', 'front', 'behind']:
+          direction_vec = scene_struct['directions'][direction_name]
+          assert direction_vec[2] == 0
+          margin = dx * direction_vec[0] + dy * direction_vec[1]
+          if 0 < margin < args.margin:
+            print(margin, args.margin, direction_name)
+            print('BROKEN MARGIN!')
+            margins_good = False
+            break
+        if not margins_good:
+          break
+        
+      if dists_good and margins_good:
+        break
+
+    # Choose random color and shape
+    if shape_color_combos is None:
+      obj_name, obj_name_out = random.choice(object_mapping)
+      color_name, rgba = random.choice(list(color_name_to_rgba.items()))
+    else:
+      obj_name_out, color_choices = random.choice(shape_color_combos)
+      color_name = random.choice(color_choices)
+      obj_name = [k for k, v in object_mapping if v == obj_name_out][0]
+      rgba = color_name_to_rgba[color_name]
+
+    # For cube, adjust the size a bit
+    if obj_name == 'Cube':
+      r /= math.sqrt(2)
+
+    # Choose random orientation for the object.
+    theta = 360.0 * random.random()
+
+    # Actually add the object to the scene
+    utils.add_object(args.shape_dir, obj_name, r, (x, y, r), theta=theta)
+    obj = bpy.context.object
+    blender_objects.append(obj)
+    positions.append((x, y, r))
+
+    # Attach a random material
+    mat_name, mat_name_out = random.choice(material_mapping)
+    utils.add_material(mat_name, Color=rgba)
+
+    # Record data about the object in the scene data structure
+    pixel_coords = utils.get_camera_coords(camera, obj.location)
+    objects.append({
+      'shape': obj_name_out,
+      'size': size_name,
+      'material': mat_name_out,
+      '3d_coords': tuple(obj.location),
+      'rotation': theta,
+      'pixel_coords': pixel_coords,
+      'color': color_name,
+      'scale': r
+    })
+
+  ##############################################################################
+  #END OBJECT PLACEMENT
+
+  # Check that all objects are at least partially visible in the rendered image
+  all_visible = check_visibility(blender_objects, args.min_pixels_per_object)
+  if not all_visible:
+    # If any of the objects are fully occluded then start over; delete all
+    # objects from the scene and place them all again.
+    print('Some objects are occluded; replacing objects')
+    for obj in blender_objects:
+      utils.delete_object(obj)
+    return add_rela(scene_struct, rela_list, args, camera, placement_func)
+
+  return objects, blender_objects
 
 
 def add_random_objects(scene_struct, num_objects, args, camera):
@@ -350,6 +749,7 @@ def add_random_objects(scene_struct, num_objects, args, camera):
   positions = []
   objects = []
   blender_objects = []
+  
   for i in range(num_objects):
     # Choose a random size
     size_name, r = random.choice(size_mapping)
@@ -372,6 +772,7 @@ def add_random_objects(scene_struct, num_objects, args, camera):
       # other objects, and further than margin along the four cardinal directions
       dists_good = True
       margins_good = True
+
       for (xx, yy, rr) in positions:
         dx, dy = x - xx, y - yy
         dist = math.sqrt(dx * dx + dy * dy)
@@ -389,7 +790,7 @@ def add_random_objects(scene_struct, num_objects, args, camera):
             break
         if not margins_good:
           break
-
+        
       if dists_good and margins_good:
         break
 
@@ -411,7 +812,7 @@ def add_random_objects(scene_struct, num_objects, args, camera):
     theta = 360.0 * random.random()
 
     # Actually add the object to the scene
-    utils.add_object(args.shape_dir, obj_name, r, (x, y), theta=theta)
+    utils.add_object(args.shape_dir, obj_name, r, (x, y,r), theta=theta)
     obj = bpy.context.object
     blender_objects.append(obj)
     positions.append((x, y, r))

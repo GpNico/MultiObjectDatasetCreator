@@ -72,23 +72,31 @@ class Exhaustivator:
         self.shape = shape[:2]
 
         rela_created = list(count_rela.keys())
-        self.rela_checkers = []
+        self.rela_checkers, self.rela_names = [], []
         if 'right' in rela_created:
             self.rela_checkers.append(is_right)
+            self.rela_names.append('right')
         if 'left' in rela_created:
             self.rela_checkers.append(is_left)
+            self.rela_names.append('left')
         if 'top' in rela_created:
             self.rela_checkers.append(is_top)
+            self.rela_names.append('top')
         if 'below' in rela_created:
             self.rela_checkers.append(is_below)
+            self.rela_names.append('below')
         if 'contact_right' in rela_created:
             self.rela_checkers.append(is_contact_right)
+            self.rela_names.append('contact_right')
         if 'contact_left' in rela_created:
             self.rela_checkers.append(is_contact_left)
+            self.rela_names.append('contact_left')
         if 'contact_on' in rela_created:
             self.rela_checkers.append(is_contact_on)
+            self.rela_names.append('contact_on')
         if 'contact_below' in rela_created:
             self.rela_checkers.append(is_contact_below)
+            self.rela_names.append('contact_below')
 
         self.rela_count = {k: 0 for k in count_rela.keys()}
 
@@ -112,14 +120,14 @@ class Exhaustivator:
                     if is_rela:
                         #Y[i,j][k] = rela_code
                         Y[i,j][k] = 1
-                        self.rela_count[list(self.rela_count.keys())[k]] += 1
-                        counts_rela[list(self.rela_count.keys())[k]] -= 1
+                        self.rela_count[self.rela_names[k]] += 1
+                        counts_rela[self.rela_names[k]] -= 1
                     is_rela, rela_code = rela_checker(r_2, c_2, r_1, c_1, vertices2, vertices1)
                     if is_rela:
                         #Y[j,i][k] = rela_code
                         Y[j,i][k] = 1
-                        self.rela_count[list(self.rela_count.keys())[k]] += 1
-                        counts_rela[list(self.rela_count.keys())[k]] -= 1
+                        self.rela_count[self.rela_names[k]] += 1
+                        counts_rela[self.rela_names[k]] -= 1
                     
         return Y, counts_rela    
     

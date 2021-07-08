@@ -19,7 +19,7 @@ def main():
     frame_size = (args.frame_size, args.frame_size)
     patch_size = args.patch_size
 
-    gpu_acceleration = False
+    gpu_acceleration = args.gpu
 
     N_rela = n
     
@@ -28,7 +28,9 @@ def main():
     #count_rela = {'right': 0*N_rela//4, 'left': 0*N_rela//4, 'top': 0*N_rela//4, 'below': 0*N_rela//4,
      #             'contact_right': N_rela, 'contact_left': N_rela, 'contact_on': N_rela, 'contact_below': N_rela}
     
-    count_rela = {'right': N_rela, 'left': N_rela, 'contact_on': N_rela, 'contact_below': N_rela}
+    #count_rela = {'right': N_rela//2, 'left': N_rela//2, 'contact_on': N_rela, 'contact_below': N_rela}
+
+    count_rela = {'top': N_rela//2, 'below': N_rela//2, 'contact_right': N_rela, 'contact_left': N_rela}
 
     allow_overlap = args.overlap
     ##########################################
@@ -47,7 +49,7 @@ def main():
             os.system('blender --background --python image_generation/render_images.py -- --num_images 10 --use_gpu 1')
         else:
             print("No GPU available or CUDA 10.x installed !")
-            os.system('blender --background --python image_generation/render_images.py -- --num_images 2')
+            os.system('blender --background --python image_generation/render_images.py -- --num_images {}'.format(N_rela))
         exit()
     else:
         raise NotImplementedError

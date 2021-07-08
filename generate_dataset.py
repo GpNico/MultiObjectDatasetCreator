@@ -46,7 +46,7 @@ def main():
         print('You have chosen clevr congrats !!')
         if gpu_acceleration:
             print("GPU Accelerated !")
-            os.system('blender --background --python image_generation/render_images.py -- --num_images 10 --use_gpu 1')
+            os.system('blender --background --python image_generation/render_images.py -- --num_images {} --use_gpu 1'.format(N_rela))
         else:
             print("No GPU available or CUDA 10.x installed !")
             os.system('blender --background --python image_generation/render_images.py -- --num_images {}'.format(N_rela))
